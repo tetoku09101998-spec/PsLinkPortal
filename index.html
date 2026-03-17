@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ペリンのリンクポータル</title>
+<style>
+    body { 
+        font-family: sans-serif; 
+        margin: 20px; 
+        background-color: #f4f4f9; 
+        color: #333; 
+    }
+    .tabs { 
+        display: flex; 
+        gap: 5px; 
+        margin-bottom: 10px; 
+        border-bottom: 2px solid #ccc; 
+        padding-bottom: 5px; 
+        overflow-x: auto; 
+    }
+    .tab { 
+        padding: 8px 16px; 
+        background: #ddd; 
+        cursor: pointer; 
+        border-radius: 4px 4px 0 0; 
+        white-space: nowrap; 
+        border: none;
+    }
+    .tab.active { 
+        background: #0056b3; 
+        color: white; 
+        font-weight: bold; 
+    }
+    .tab-content { 
+        display: none; 
+        background: white; 
+        padding: 20px; 
+        border-radius: 0 4px 4px 4px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+        min-height: 150px;
+    }
+    .tab-content.active { 
+        display: block; 
+    }
+    ul { 
+        list-style: none; 
+        padding: 0; 
+    }
+    li { 
+        margin-bottom: 12px; 
+        display: flex;
+        align-items: center;
+    }
+    a { 
+        color: #0056b3; 
+        text-decoration: none; 
+        font-size: 1.1em;
+    }
+    a:hover { 
+        text-decoration: underline; 
+    }
+    .controls { 
+        margin-top: 20px; 
+        padding: 15px; 
+        background: #e9ecef; 
+        border-radius: 4px; 
+    }
+    .controls h3 { 
+        margin-top: 0; 
+        font-size: 1.1em;
+        margin-bottom: 10px;
+    }
+    input[type="text"], input[type="url"], select { 
+        padding: 6px; 
+        margin-right: 5px; 
+        margin-bottom: 5px; 
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    button { 
+        padding: 6px 12px;
+        background: #28a745; 
+        color: white; 
+        border: none; 
+        border-radius: 4px; 
+        cursor: pointer; 
+    }
+    button:hover { 
+        background: #218838; 
+    }
+    .delete-btn { 
+        background: #dc3545; 
+        font-size: 0.8em; 
+        padding: 2px 6px; 
+        margin-left: 15px;
+    }
+    .delete-btn:hover { 
+        background: #c82333; 
+    }
+    .backup-btn {
+        background: #17a2b8;
+    }
+    .backup-btn:hover {
+        background: #138496;
+    }
+    .move-btn {
+        background: #6c757d;
+        font-size: 0.8em;
+        padding: 4px 8px;
+        margin-right: 5px;
+    }
+    .move-btn:hover {
+        background: #5a6268;
+    }
+    .hint {
+        font-size: 0.9em;
+        color: #666;
+    }
+    .flex-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .tab-footer {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px dashed #ccc;
+        display: flex;
+        align-items: center;
+    }
+</style>
+</head>
+<body>
+
+<h2>リンクポータル</h2>
+
+<div class="tabs" id="tabList">
+    <button class="tab" onclick="switchTab('tab-works')">制作物</button>
+</div>
+
+<div id="tabContents">
+    <div id="tab-works" class="tab-content">
+        <p class="hint">GitHubで展開しているメインの制作物よ。</p>
+        <ul>
+            <li><a href="https://tetoku09101998-spec.github.io/coc6-cs/" target="_blank">クトゥルフ神話TRPGキャラシート作成ツール</a></li>
+            <li><a href="https://tetoku09101998-spec.github.io/huyokanri/" target="_blank">扶養管理ツール</a></li>
+            <li><a href="https://tetoku09101998-spec.github.io/omikuji_check/" target="_blank">おみくじ手帖</a></li>
+            <li><a href="https://tetoku09101998-spec.github.io/task_track/" target="_blank">週間タスクトラッカー</a></li>
+            <li><a href="https://tetoku09101998-spec.github.io/AETHER/" target="_blank">ARGサポートツール</a></li>
+            <li><a href="https://tetoku09101998-spec.github.io/-/" target="_blank">ライナー構文ジェネレーター</a></li>
+            <li><a href="https://tetoku09101998-spec.github.io/ToN_-statistics/" target="_blank">ToN統計ビュアー</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="controls">
+    <h3>タブ・リンクの追加</h3>
+    <div class="flex-row" style="margin-bottom: 10px;">
+        <input type="text" id="newTabName" placeholder="新しいタブ名">
+        <button onclick="addTab()">タブ追加</button>
+    </div>
+    <div class="flex-row">
+        <select id="targetTabSelect"></select>
+        <input type="text" id="newLinkName" placeholder="サイト名">
+        <input type="url" id="newLinkUrl" placeholder="https://...">
+        <button onclick="addLink()">リンク追加</button>
+    </div>
+</div>
+
+<div class="controls">
+    <h3>データのバックアップと復元</h3>
+    <div class="flex-row">
+        <button class="backup-btn" onclick="exportData()">データを出力 (JSON)</button>
+        <span style="color: #ccc;">|</span>
+        <input type="file" id="importFile" accept=".json">
+        <button class="backup-btn" onclick="importData()">データを復元</button>
+    </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'perin_portal_data';
+const ACTIVE_TAB_KEY = 'perin_portal_active_tab';
+let portalData = { tabs: [] };
+
+function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        try {
+            portalData = JSON.parse(saved);
+        } catch(e) {
+            portalData = { tabs: [] };
+        }
+    }
+    renderCustomTabs();
+    updateSelect();
+
+    // 最後に開いていたタブを復元
+    const lastActive = localStorage.getItem(ACTIVE_TAB_KEY);
+    const targetBtn = Array.from(document.querySelectorAll('.tab')).find(b => b.getAttribute('onclick') === `switchTab('${lastActive}')`);
+    
+    if (targetBtn) {
+        targetBtn.click();
+    } else {
+        // 保存されていなければ一番左
+        const firstTab = document.querySelector('.tab');
+        if (firstTab) firstTab.click();
+    }
+}
+
+function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(portalData));
+    renderCustomTabs();
+    updateSelect();
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    const btn = Array.from(document.querySelectorAll('.tab')).find(b => b.getAttribute('onclick') === `switchTab('${tabId}')`);
+    if(btn) btn.classList.add('active');
+    
+    const content = document.getElementById(tabId);
+    if(content) content.classList.add('active');
+
+    // 選択されたタブを記憶
+    localStorage.setItem(ACTIVE_TAB_KEY, tabId);
+}
+
+function addTab() {
+    const nameInput = document.getElementById('newTabName');
+    const name = nameInput.value.trim();
+    if (!name) return alert('タブ名くらい入力しなさいよね。');
+    
+    const newId = 'tab-custom-' + Date.now();
+    portalData.tabs.push({ id: newId, name: name, links: [] });
+    nameInput.value = '';
+    saveData();
+    switchTab(newId);
+}
+
+function addLink() {
+    const tabId = document.getElementById('targetTabSelect').value;
+    const nameInput = document.getElementById('newLinkName');
+    const urlInput = document.getElementById('newLinkUrl');
+    
+    const name = nameInput.value.trim();
+    const url = urlInput.value.trim();
+    
+    if (!tabId) return alert('追加先のタブがないんだけど？ 先にタブを作りなさい。');
+    if (!name || !url) return alert('サイト名とURL、両方入れないとダメに決まってるでしょ。');
+    
+    const tab = portalData.tabs.find(t => t.id === tabId);
+    if (tab) {
+        tab.links.push({ name, url });
+        nameInput.value = '';
+        urlInput.value = '';
+        saveData();
+        switchTab(tabId);
+    }
+}
+
+function moveTab(index, direction) {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= portalData.tabs.length) return;
+    
+    const temp = portalData.tabs[index];
+    portalData.tabs[index] = portalData.tabs[newIndex];
+    portalData.tabs[newIndex] = temp;
+    
+    saveData();
+    switchTab(portalData.tabs[newIndex].id);
+}
+
+function renderCustomTabs() {
+    document.querySelectorAll('.custom-tab-btn').forEach(el => el.remove());
+    document.querySelectorAll('.custom-tab-content').forEach(el => el.remove());
+    
+    const tabList = document.getElementById('tabList');
+    const tabContents = document.getElementById('tabContents');
+    
+    portalData.tabs.forEach((tabInfo, tabIndex) => {
+        const btn = document.createElement('button');
+        btn.className = 'tab custom-tab-btn';
+        btn.textContent = tabInfo.name;
+        btn.setAttribute('onclick', `switchTab('${tabInfo.id}')`);
+        tabList.appendChild(btn);
+        
+        const content = document.createElement('div');
+        content.id = tabInfo.id;
+        content.className = 'tab-content custom-tab-content';
+        
+        const ul = document.createElement('ul');
+        tabInfo.links.forEach((link, linkIndex) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = link.url;
+            a.target = '_blank';
+            a.textContent = link.name;
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.textContent = '削除';
+            delBtn.onclick = () => {
+                tabInfo.links.splice(linkIndex, 1);
+                saveData();
+                switchTab(tabInfo.id); 
+            };
+            
+            li.appendChild(a);
+            li.appendChild(delBtn);
+            ul.appendChild(li);
+        });
+        
+        content.appendChild(ul);
+
+        const footer = document.createElement('div');
+        footer.className = 'tab-footer';
+
+        if (tabIndex > 0) {
+            const moveLeft = document.createElement('button');
+            moveLeft.className = 'move-btn';
+            moveLeft.textContent = '◀ 左へ';
+            moveLeft.onclick = () => moveTab(tabIndex, -1);
+            footer.appendChild(moveLeft);
+        }
+
+        if (tabIndex < portalData.tabs.length - 1) {
+            const moveRight = document.createElement('button');
+            moveRight.className = 'move-btn';
+            moveRight.textContent = '右へ ▶';
+            moveRight.onclick = () => moveTab(tabIndex, 1);
+            footer.appendChild(moveRight);
+        }
+
+        if (tabInfo.links.length === 0) {
+           const delTabBtn = document.createElement('button');
+           delTabBtn.className = 'delete-btn';
+           delTabBtn.textContent = 'この空タブを削除';
+           if (footer.children.length > 0) delTabBtn.style.marginLeft = '15px';
+           else delTabBtn.style.marginLeft = '0';
+           
+           delTabBtn.onclick = () => {
+               portalData.tabs.splice(tabIndex, 1);
+               saveData();
+               
+               const firstTab = document.querySelector('.tab');
+               if (firstTab) firstTab.click();
+           };
+           footer.appendChild(delTabBtn);
+        }
+
+        if (footer.children.length > 0) {
+            content.appendChild(footer);
+        }
+
+        tabContents.appendChild(content);
+    });
+}
+
+function updateSelect() {
+    const select = document.getElementById('targetTabSelect');
+    select.innerHTML = '';
+    portalData.tabs.forEach(tab => {
+        const option = document.createElement('option');
+        option.value = tab.id;
+        option.textContent = tab.name;
+        select.appendChild(option);
+    });
+}
+
+function exportData() {
+    if (portalData.tabs.length === 0) return alert('出力するデータがないんだけど？');
+    const dataStr = JSON.stringify(portalData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "perin_portal_backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importData() {
+    const fileInput = document.getElementById('importFile');
+    const file = fileInput.files[0];
+    if (!file) return alert('ファイルを選択しなさいよね。');
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            if (importedData && Array.isArray(importedData.tabs)) {
+                portalData = importedData;
+                saveData();
+                alert('復元完了したわ。');
+                fileInput.value = '';
+                
+                const firstTab = document.querySelector('.tab');
+                if (firstTab) firstTab.click();
+            } else {
+                alert('データ形式がおかしいんだけど？');
+            }
+        } catch (err) {
+            alert('JSONの解析に失敗したわ。壊れたファイル読ませないで。');
+        }
+    };
+    reader.readAsText(file);
+}
+
+loadData();
+</script>
+</body>
+</html>
